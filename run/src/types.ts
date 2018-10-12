@@ -27,24 +27,26 @@ export type Driver<Si, So> = {
 export type DisposeFunction = () => void;
 
 export type Drivers = {
-  [name: string]: Driver<FantasyObservable | undefined | void | null, any>;
+  [name: string]: Driver<Stream<any> | void, any | void>;
 };
 
 export type Main = (...args: Array<any>) => any;
 
 export type Sources<D extends Drivers> = {[k in keyof D]: ReturnType<D[k]>};
 
-export type Sinks<M extends Main> = {
-  [k in (string & keyof ReturnType<M>)]: ReturnType<M>[k] & FantasyObservable
-};
+export type Sinks<M extends Main> = ReturnType<M>;
 
-export type MatchingMain<D extends Drivers, M extends Main> = Main & {
-  (so?: Partial<Sources<D>>): Sinks<M>;
-};
+export type MatchingMain<D extends Drivers, M extends Main> =
+  | Main & {
+      (so: Sources<D>): Sinks<M>;
+    }
+  | Main & {
+      (): Sinks<M>;
+    };
 
 export type MatchingDrivers<D extends Drivers, M extends Main> = Drivers &
   {
-    [k in (string & keyof Sinks<M>)]:
+    [k in string & keyof Sinks<M>]:
       | ((si?: Sinks<M>[k]) => Sources<D>[k])
       | ((si: Sinks<M>[k]) => Sources<D>[k])
   };
