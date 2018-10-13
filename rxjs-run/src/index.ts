@@ -5,9 +5,7 @@ import {from, Observable} from 'rxjs';
 import {setAdapt} from '@cycle/run/lib/adapt';
 import {setup as coreSetup, DisposeFunction, Drivers, Main} from '@cycle/run';
 
-export type MainOutputs<M extends Main> = {
-  [k in string & keyof ReturnType<M>]: ReturnType<M>[k]
-};
+export type MainOutputs<M extends Main> = ReturnType<M>;
 
 export type DriverInputs<M extends Main> = {
   [k in string & keyof ReturnType<M>]: ReturnType<M>[k] extends Observable<
@@ -27,9 +25,13 @@ export type MainInputs<D extends Drivers> = {
     : ReturnType<D[k]>
 };
 
-export type MatchingMain<D extends Drivers, M extends Main> = Main & {
-  (so?: Partial<MainInputs<D>>): MainOutputs<M>;
-};
+export type MatchingMain<D extends Drivers, M extends Main> =
+  | Main & {
+      (so: MainInputs<D>): MainOutputs<M>;
+    }
+  | Main & {
+      (): MainOutputs<M>;
+    };
 
 export type MatchingDrivers<D extends Drivers, M extends Main> = Drivers &
   {
